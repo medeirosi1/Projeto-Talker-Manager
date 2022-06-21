@@ -8,6 +8,8 @@ const { loginValidation, validationName, validationAge, validationTalk,
   validationRate, 
   validationToken } = require('./Validations');
 
+const talkerJson = './talker.json';
+
 const app = express();
 app.use(bodyParser.json());
 
@@ -32,7 +34,7 @@ app.post('/login', (req, res) => {
 });
 
 app.get('/talker', async (_req, res) => {
-  const teste = await readFile('./talker.json') || [];
+  const teste = await readFile(talkerJson) || [];
   res.status(200).json(teste);
 });
 
@@ -55,11 +57,27 @@ validationRate,
 validationWatchedAt,
 async (req, res) => {
   const { name, age, talk: { watchedAt, rate } } = req.body;
-  const talkers = await readFile('./talker.json');
+  const talkers = await readFile(talkerJson);
   const id = talkers.length + 1;
   const newTalker = { id, name, age, talk: { watchedAt, rate } };
-  await writeFile('./talker.json', newTalker);
+  await writeFile(talkerJson, newTalker);
   res.status(201).json(newTalker);
+});
+
+app.put('/talker/:id',
+validationName,
+validationAge,
+validationTalk,
+validationRate,
+validationWatchedAt,
+async (req, res) => {
+  const { id } = req.params;
+  const { name, age, talk: { watchedAt, rate } } = req.body;
+  const talkerForId = await readFile(talkerJson);
+  const talkId = talkerForId.findIndex((t) => t.id === Number(id));
+  const talkerChange = { ...talkerForId[talkId], name, age, talk: { watchedAt, rate } };
+  await writeFile(talkerJson, talkerChange);
+  res.status(200).json(talkerChange);
 });
 
 app.listen(PORT, () => {
