@@ -38,6 +38,16 @@ app.get('/talker', async (_req, res) => {
   res.status(200).json(teste);
 });
 
+app.get('/talker/search', validationToken, async (req, res) => {
+  const { q } = req.query;
+  const participantes = await readFile(talkerJson);
+  console.log(participantes);
+  const talkerName = participantes.filter((n) => n.name.includes(q));
+  console.log(talkerName);
+  // await writeFile(talkerJson, talkerName);
+  res.status(200).json(talkerName);
+});
+
 app.get('/talker/:id', (req, res) => {
   const { id } = req.params;
   const talk = talker.find((t) => t.id === Number(id));
