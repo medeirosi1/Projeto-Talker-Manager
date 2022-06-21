@@ -2,7 +2,7 @@ const express = require('express');
 const crypto = require('crypto');
 const bodyParser = require('body-parser');
 const talker = require('./talker.json');
-const { readFile, writeFile } = require('./readAndWriteFile');
+const { readFile, writeFile, writeFileNotPush } = require('./readAndWriteFile');
 const { loginValidation, validationName, validationAge, validationTalk,  
   validationWatchedAt, 
   validationRate, 
@@ -78,6 +78,16 @@ async (req, res) => {
   const talkerChange = { ...talkerForId[talkId], name, age, talk: { watchedAt, rate } };
   await writeFile(talkerJson, talkerChange);
   res.status(200).json(talkerChange);
+});
+
+app.delete('/talker/:id', async (req, res) => {
+  const { id } = req.params;
+  const talkerizado = await readFile(talkerJson);
+  const idTalk = talkerizado.findIndex((t) => t.id === Number(id));
+  console.log(idTalk);
+  const spliceTalk = talkerizado.filter((el) => el.id !== idTalk + 1);
+  await writeFileNotPush(talkerJson, spliceTalk);
+  res.status(204).json(spliceTalk);
 });
 
 app.listen(PORT, () => {

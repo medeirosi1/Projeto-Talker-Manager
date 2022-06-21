@@ -19,7 +19,18 @@ const writeFile = async (path, content) => {
     }
 };
 
+const writeFileNotPush = async (path, content) => {
+  try {
+    // const readfile = await readFile(path);
+    // readfile.push(content);
+    await fs.writeFile(path, JSON.stringify(content));
+  } catch (error) {
+    console.log(error.message);
+  }
+};
+
 module.exports = {
     readFile,
     writeFile,
+    writeFileNotPush,
 };
