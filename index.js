@@ -2,7 +2,11 @@ const express = require('express');
 const crypto = require('crypto');
 const bodyParser = require('body-parser');
 const talker = require('./talker.json');
-const { readFile } = require('./readAndWriteFile');
+const { readFile, writeFile } = require('./readAndWriteFile');
+const { loginValidation, validationName, validationAge, validationTalk,  
+  validationWatchedAt, 
+  validationRate, 
+  validationToken } = require('./Validations');
 
 const app = express();
 app.use(bodyParser.json());
@@ -13,6 +17,18 @@ const PORT = '3000';
 // não remova esse endpoint, e para o avaliador funcionar
 app.get('/', (_request, response) => {
   response.status(HTTP_OK_STATUS).send();
+});
+
+app.post('/login', (req, res) => {
+  loginValidation(req, res);
+  const valor = crypto.randomBytes(8).toString('hex');
+  const token = {
+    token: valor.slice(0, 16),
+  };
+  req.headers = {
+    authorization: token,
+  };
+  res.status(200).json(token);
 });
 
 app.get('/talker', async (_req, res) => {
@@ -29,23 +45,21 @@ app.get('/talker/:id', (req, res) => {
   res.status(200).json(talk);
 });
 
-app.post('/login', (req, res) => {
-  const { email, password } = req.body;
-  const regex = /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/g;
+app.use(validationToken);
 
-  if (!email) return res.status(400).json({ message: 'O campo "email" é obrigatório' });
-  if (!regex.test(email)) {
-    return res.status(400).json({ message: 'O "email" deve ter o formato "email@email.com"' });
-  }
-  if (!password) return res.status(400).json({ message: 'O campo "password" é obrigatório' });
-  if (password.length < 6) {
-    return res.status(400).json({ message: 'O "password" deve ter pelo menos 6 caracteres' });
-  }
-  const valor = crypto.randomBytes(8).toString('hex');
-  const token = {
-    token: valor.slice(0, 16),
-  };
-  res.status(200).json(token);
+app.post('/talker', 
+validationName,
+validationAge,
+validationTalk,
+validationRate,
+validationWatchedAt,
+async (req, res) => {
+  const { name, age, talk: { watchedAt, rate } } = req.body;
+  const talkers = await readFile('./talker.json');
+  const id = talkers.length + 1;
+  const newTalker = { id, name, age, talk: { watchedAt, rate } };
+  await writeFile('./talker.json', newTalker);
+  res.status(201).json(newTalker);
 });
 
 app.listen(PORT, () => {

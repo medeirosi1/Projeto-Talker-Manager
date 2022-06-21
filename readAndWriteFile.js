@@ -9,14 +9,17 @@ const readFile = async (path) => {
     }
   };
 
-// const writeFile = async (path, content) => {
-//     try {
-        
-//     } catch (error) {
-//       console.log(error.message);
-//     }
-// };
+const writeFile = async (path, content) => {
+    try {
+      const readfile = await readFile(path);
+      readfile.push(content);
+      await fs.writeFile(path, JSON.stringify(readfile));
+    } catch (error) {
+      console.log(error.message);
+    }
+};
 
 module.exports = {
     readFile,
+    writeFile,
 };
